@@ -1,0 +1,9 @@
+---
+user: luke
+system_packages:
+  - build-essential
+  - fail2ban
+  - git
+  - nginx
+  - vim
+  - zsh

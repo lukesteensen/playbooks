@@ -1,0 +1,25 @@
+---
+- hosts: all
+  vars_files:
+    - vars.yml
+  remote_user: root
+  tasks:
+  - name: upgrade packages
+    apt: upgrade=dist update_cache=yes
+
+  - name: add user
+    user: name={{ user }} shell=/bin/bash
+
+  - name: ensure ssh directory exists
+    file: path="/home/{{ user }}/.ssh" state=directory mode=700 owner={{ user }}
+
+  - name: download authorized_keys from github
+    shell: "curl -s https://github.com/lukesteensen.keys > /home/{{ user }}/.ssh/authorized_keys"
+
+  - name: set permissions of authorized_keys
+    file: path="/home/{{ user }}/.ssh/authorized_keys" mode=400 owner={{ user }}
+
+  - name: add user to sudoers
+    lineinfile: dest="/etc/sudoers.d/{{ user }}" state=present mode=0440 create=true line="{{ user }} ALL=(ALL:ALL) NOPASSWD:ALL"
+
+# vim: set ft=ansible:
