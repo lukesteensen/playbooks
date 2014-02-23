@@ -1,0 +1,14 @@
+server {
+  listen 80;
+  server_name lukesteensen.com;
+  root /home/luke/lukesteensen.com;
+
+  location / {
+    gzip on;
+    gzip_types text/html text/css text/javascript application/javascript application/x-javascript image/gif;
+
+    expires 1w;
+
+    try_files $uri $uri/ /index.html;
+  }
+}

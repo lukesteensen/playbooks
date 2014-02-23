@@ -1,0 +1,33 @@
+---
+- hosts: all
+  vars_files:
+    - vars.yml
+  sudo: yes
+  tasks:
+  - name: make sure nginx is running
+    service: name=nginx state=started
+
+  - name: copy nginx config
+    copy: src=files/lukesteensen dest=/etc/nginx/sites-available/lukesteensen
+    notify:
+    - reload nginx
+
+  - name: symlink to sites-enabled
+    file: src=/etc/nginx/sites-available/lukesteensen dest=/etc/nginx/sites-enabled/lukesteensen state=link
+    notify:
+    - reload nginx
+
+  - name: disable default site
+    file: path=/etc/nginx/sites-enabled/default state=absent
+    notify:
+    - reload nginx
+
+  - name: copy over static files
+    synchronize: src=lukesteensen.com dest="/home/{{ user }}/" delete=true
+    sudo: no
+
+  handlers:
+  - name: reload nginx
+    service: name=nginx state=reloaded
+
+# vim: set ft=ansible:
