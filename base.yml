@@ -1,0 +1,41 @@
+---
+- hosts: all
+  vars_files:
+    - vars.yml
+  tasks:
+  - name: install system packages
+    apt: pkg={{ item }} state=installed update_cache=yes cache_valid_time=600
+    with_items: system_packages
+    sudo: yes
+
+  - name: set shell to zsh
+    user: name={{ user }} shell=/usr/bin/zsh
+    sudo: yes
+
+  - name: add public key for cloning from github
+    shell: "ssh-keyscan github.com >> .ssh/known_hosts"
+
+  - name: install oh-my-zsh
+    git: repo="git@github.com:robbyrussell/oh-my-zsh.git" dest="/home/{{ user }}/.oh-my-zsh"
+
+  - name: copy zshrc
+    copy: src=files/zshrc dest="/home/{{ user }}/.zshrc"
+
+  - name: disallow root logins
+    lineinfile: dest=/etc/ssh/sshd_config line="PermitRootLogin no" regexp="^PermitRootLogin"
+    sudo: yes
+    notify:
+    - restart ssh
+
+  - name: disallow password logins
+    lineinfile: dest=/etc/ssh/sshd_config line="PasswordAuthentication no" regexp="^PasswordAuthentication" insertafter="#PasswordAuthentication yes"
+    sudo: yes
+    notify:
+    - restart ssh
+
+  handlers:
+  - name: restart ssh
+    service: name=ssh state=restarted
+    sudo: yes
+
+# vim: set ft=ansible:
